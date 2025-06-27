@@ -73,7 +73,30 @@ class BoardModel:
             axial = self.centroid_to_axial(tile.centroid, self.hex_width)
             self.axial_map[tile.qr_id] = axial
 
-        self.adjacency_map = self.build_adjacency_map()
+
+        print("Axial Map:")
+        for tid, coords in self.axial_map.items():
+            print(f"{tid}: {coords}")
+
+        # Compare anchor to all object tiles
+        anchor = "id_027"
+        for tid, coords in self.axial_map.items():
+            if tid != anchor:
+                aq, ar = self.axial_map[anchor]
+                tq, tr = coords
+                delta = (tq - aq, tr - ar)
+                if delta in ZONE_OFFSETS:
+                    print(f"✓ {tid} is adjacent to {anchor} with delta {delta}")
+                else:
+                    print(f"✗ {tid} is NOT adjacent to {anchor} (delta {delta})")
+
+                    
+                self.adjacency_map = self.build_adjacency_map()
+
+        print("Adjacency for anchors:")
+        for aid in self.anchor_tiles:
+            print(f"{aid}: {self.adjacency_map.get(aid)}")
+
         self.assign_zones() # assign anchors to children, children to anchors
 
 
@@ -126,7 +149,8 @@ class BoardModel:
 
     def centroid_to_axial(self, centroid, hex_width):
         x, y = centroid
-        size = hex_width / 2  # length from center to flat side
+        # size = hex_width / 2  # length from center to flat side
+        size = hex_width / (3**0.5)  # use proper hex height-to-width scaling
 
         q = (x * (2/3)) / size
         r = (-x / 3 + (3**0.5 / 3) * y) / size
@@ -152,16 +176,17 @@ class BoardModel:
         # print(ZONE_OFFSETS)
 
         adjacency_map = {}
-        for tile_id, (q, r) in self.axial_map.items():
+        axial_to_id = {coords: qr_id for qr_id, coords in self.axial_map.items()}
+
+        for qr_id, (q, r) in self.axial_map.items():
             neighbors = []
             for dq, dr in ZONE_OFFSETS:
-                neighbor_pos = (q + dq, r + dr)
-                for other_id, (oq, or_) in self.axial_map.items():
-                    if (oq, or_) == neighbor_pos:
-                        neighbors.append(other_id)
-                    else: 
-                        neighbors.append(None)
-            adjacency_map[tile_id] = neighbors
+                neighbor_coords = (q + dq, r + dr)
+                neighbor_id = axial_to_id.get(neighbor_coords)
+                if neighbor_id:
+                    neighbors.append(neighbor_id)
+            adjacency_map[qr_id] = neighbors
+
 
         return adjacency_map
 
@@ -218,7 +243,7 @@ class BoardModel:
         return next((t for t in self.tiles if t.qr_id == tile_id), None)
     
     def print_adjacency_map(self):
-        print("\nAdjacency Map:")
+        # print("\nAdjacency Map:")
         if not self.adjacency_map:
             print("Adjacency map is empty or not yet initialized.")
             return

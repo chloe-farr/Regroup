@@ -19,7 +19,7 @@ class TileSidebar(QWidget):
         self.tile_data = tile_data  # merged static+dynamic attributes (from JSONs)
         self.tiles = tiles
         self.tile_list = QListWidget()
-        self.populate_list()
+        # self.populate_list()
         self.init_ui()
 
         self.layout = QVBoxLayout()
@@ -43,6 +43,7 @@ class TileSidebar(QWidget):
 
             item.setData(Qt.ItemDataRole.UserRole, tile_id)
             self.tile_list.addItem(item)
+        
 
     def get_selected_tile_id(self):
         """
@@ -74,18 +75,11 @@ class TileSidebar(QWidget):
         When the user clicks a tile item in the sidebar
         """
         tile_id = item.data(Qt.ItemDataRole.UserRole)
-        print("[DEBUG] clicked tile",tile_id)
+        # print("[DEBUG] clicked tile",tile_id)
         self.tile_selected.emit(tile_id)
 
     def select_item_by_id(self, tile_id):
-        # print(f"[DEBUG] select_item_by_id called with {tile_id}")
-        # for i in range(self.tile_list.count()):
-        #     item = self.tile_list.item(i)
-        #     if item.data(Qt.ItemDataRole.UserRole) == tile_id:
-        #         self.tile_list.setCurrentItem(item)
-        #         self.tile_selected.emit(tile_id)  # <-- manually emit the signal
-        #         break
-        print(f"[DEBUG] Selecting in sidebar: {tile_id}")
+        # print(f"[DEBUG] Selecting in sidebar: {tile_id}")
         for i in range(self.tile_list.count()):
             item = self.tile_list.item(i)
             if item.data(Qt.ItemDataRole.UserRole) == tile_id:

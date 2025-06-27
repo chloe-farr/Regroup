@@ -1,11 +1,11 @@
-from PyQt6.QtWidgets import QApplication
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QDockWidget
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QDockWidget,QFileDialog, QApplication
 from gui.board_view import BoardView
 from gui.tile_sidebar import TileSidebar
 from PyQt6.QtCore import QRectF, QPointF, Qt, QTimer
 from gui.scanned_board_view import ScannedBoardView
 from core.board_scanner import cv2_to_pixmap  # wherever you put that function
-
+from PyQt6.QtPrintSupport import QPrinter
+from PyQt6.QtGui import QPainter, QAction
 
 class MainWindow(QMainWindow):
     """
@@ -81,10 +81,24 @@ class MainWindow(QMainWindow):
         )
 
         self.addDockWidget(Qt.DockWidgetArea.LeftDockWidgetArea, self.xray_dock)
-        print("[DEBUG] xray_dock DockWidget added")
+        # print("[DEBUG] xray_dock DockWidget added")
 
     def init_menu(self):
-        view_menu = self.menuBar().addMenu("View")
+        menubar = self.menuBar()
+
+        # ----- File Menu -----
+        file_menu = menubar.addMenu("File")
+
+        export_action = QAction("Export to PDF", self)
+        export_action.setShortcut("Ctrl+P")
+        export_action.triggered.connect(self.export_board_to_pdf)
+        file_menu.addAction(export_action)
+
+        file_menu.addSeparator()
+        file_menu.addAction("Exit", self.close)
+
+        # ----- View Menu -----
+        view_menu = menubar.addMenu("View")
 
         toggle_board = self.board_dock.toggleViewAction()
         toggle_sidebar = self.tile_menu_dock.toggleViewAction()
@@ -100,3 +114,16 @@ class MainWindow(QMainWindow):
             [self.width() * 0.25, self.width() * 0.25],
             Qt.Orientation.Horizontal
         )
+
+    def export_board_to_pdf(self):
+        filename, _ = QFileDialog.getSaveFileName(self, "Export to PDF", "", "PDF Files (*.pdf)")
+        if not filename:
+            return
+
+        printer = QPrinter()
+        printer.setOutputFormat(QPrinter.OutputFormat.PdfFormat)
+        printer.setOutputFileName(filename)
+
+        painter = QPainter(printer)
+        self.board_view.scene().render(painter)  # Optionally: pass QRect if you want clipping
+        painter.end()

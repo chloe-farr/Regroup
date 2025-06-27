@@ -1,5 +1,5 @@
 from PyQt6.QtWidgets import QGraphicsView, QGraphicsItem, QGraphicsTextItem
-from PyQt6.QtGui import QBrush, QPen, QColor, QPainterPath, QPainter
+from PyQt6.QtGui import QBrush, QPen, QColor, QPainterPath, QPainter, QAction
 from PyQt6.QtCore import QRectF, QPointF, Qt, pyqtSignal
 import math
 from core.tile_model import AnchorTile, ObjectTile
@@ -135,19 +135,6 @@ class BoardView(QGraphicsView):
 
         self.current_scale *= factor
         self.scale(factor, factor)
-
-    # def highlight_tile_by_id(self, qr_id: str):
-    #     print("[DEBUG] ? set_highlight for ", qr_id)
-    #     if self.highlighted_item:
-    #         print("[DEBUG] I'm already highlighted ", qr_id)
-    #         self.highlighted_item.set_highlight(False)
-
-    #     for item in self.scene.items():
-    #         if isinstance(item, TileGraphicsItem) and item.tile.qr_id == qr_id:
-    #             self.highlighted_item = item
-    #             item.set_highlight(True)
-    #             print("[DEBUG] setting highlight for ", qr_id)
-    #             break
     
     def highlight_tile_by_id(self, tile_id: str):
         for item in self.tile_items:
@@ -167,10 +154,6 @@ class BoardView(QGraphicsView):
         self.highlight_tile_by_id(qr_id)
         self.tile_selected.emit(qr_id) 
 
-    # def tile_was_clicked(self, tile_id):
-    #     print(f"[DEBUG] BoardView received click on: {tile_id}")
-    #     self.tile_selected.emit(tile_id)
-    #     self.tile_selected.emit(qr_id)
 
 def axial_to_pixel(q, r, rendered_hex_size):
     """
@@ -293,8 +276,8 @@ class TileGraphicsItem(QGraphicsItem):
         return points
     
     def mousePressEvent(self, event):
-        print(f"[DEBUG] Tile on board clicked: {self.tile.qr_id}")
+        # print(f"[DEBUG] Tile on board clicked: {self.tile.qr_id}")
         scene = self.scene()
         if hasattr(scene, 'tile_was_clicked'):
-            print(f"[DEBUG] Calling tile_was_clicked for: {self.tile.qr_id}")
+            # print(f"[DEBUG] Calling tile_was_clicked for: {self.tile.qr_id}")
             scene.tile_was_clicked(self.tile.qr_id)

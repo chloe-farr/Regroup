@@ -23,27 +23,6 @@ COLOR_MAP = {
 }
  
 
-# def xray_board(img, tiles):
-#     """
-#     Draw polylines around original QR codes. This will give the user feedback on whether their tiles have scanned correctly.
-#     Parameters:
-#         path (str): Path to the image file.
-#         tile objects ([TILE]): to access corners of tile qr codes
-
-#     Returns:
-#         Nothing 
-        
-#     Updates original image with polylines around QRs.
-#     """
-#     for tile in tiles:
-#         if "og_corners" in tile.attributes:
-#             pts = np.array(tile.attributes["og_corners"]).astype(int)
-#             cv2.polylines(img, [pts], True, (0, 255, 0), 2)
-
-#         draw_tile_overlay(img, tile)
-    
-#     cv2.imshow("Tile Mirror", img)
-
 def mock_board(img, tile_metadata):
     """
     Creates a mock board with hard-coded tiles and axial positions.
@@ -60,29 +39,15 @@ def mock_board(img, tile_metadata):
     
     return board
 
-def merge_tile_data(tile_definitions: dict, tile_attributes: dict) -> dict:
-    """
-    Merges static tile definitions with runtime-updated attributes.
+def merge_tile_metadata(definitions, attributes):
+    merged = {}
 
-    Parameters:
-        tile_definitions (dict): Static metadata per tile ID.
-        tile_attributes (dict): Runtime attributes per tile ID.
+    for qr_id, attrs in definitions.items():
+        icon = attrs.get("icon")
+        static = attributes.get(icon, {})  # fallback if icon missing from definitions
+        merged[qr_id] = {**static, **attrs}  # dynamic overrides static if keys clash
 
-    Returns:
-        dict: Merged tile metadata per tile ID.
-    """
-    merged_tile_data = {}
-
-    all_ids = set(tile_definitions) | set(tile_attributes)
-
-    for tile_id in all_ids:
-        definition = tile_definitions.get(tile_id, {})
-        attributes = tile_attributes.get(tile_id, {})
-
-        # Definitions are the base, attributes override or extend
-        merged_tile_data[tile_id] = {**definition, **attributes}
-
-    return merged_tile_data
+    return merged
 
 def load_assets(img_path, tile_metadata_path, tile_attributes_path):
     # Scanned image of physical board
@@ -96,14 +61,14 @@ def load_assets(img_path, tile_metadata_path, tile_attributes_path):
     with open(tile_attributes_path) as f:
         tile_attributes = json.load(f)
 
-    merged_tile_data = merge_tile_data(tile_metadata, tile_attributes)
+    merged_tile_data = merge_tile_metadata(tile_metadata, tile_attributes)
 
     return img, merged_tile_data
 
 def init_scanned_board_view(img, board):
         try:
             pixmap = xray_board(img, board.tiles)
-            print("success with bitmap")
+            # print("success with bitmap")
             return pixmap
         except Exception as e:
             print("Pixmap conversion failed:", e)
@@ -115,14 +80,14 @@ def main():
     app = QApplication(sys.argv)  # MUST be first Qt thing
 
     # Scanned image of physical board
-    img_path = "assets/tile_imgs/IMG_1618.jpg"
+    img_path = "assets/tile_imgs/IMG_1620.jpg"
     tile_metadata_path = "assets/tile_definitions.json" #may turn into arg that user can provide
     tile_attributes_path = "assets/tile_attributes.json"
     img, tile_data = load_assets(img_path, tile_metadata_path, tile_attributes_path)
 
     board = mock_board(img, tile_data)
-    
-    # print("TILE BY ID:", board.get_tile_by_id("id_011"))
+    # print("Adjacency map:",board.adjacency_map)
+    # print("TILE BY ID:", board.get_tile_by_id("id_007"))
 
     # print("TILE BY ID:", board.get_tile_neighbors_by_id("id_011"))
 
