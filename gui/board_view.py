@@ -6,7 +6,6 @@ from core.tile_model import AnchorTile, ObjectTile
 
 
 # Constants for rendering
-HEX_SIZE = 50  # Radius from center to vertex of hexagon
 DEFAULT_COLOR = QColor("lightgray")
 ANCHOR_BORDER_COLOR = QColor("black")
 ANCHOR_BORDER_WIDTH = 3
@@ -26,26 +25,37 @@ class BoardView(QGraphicsView):
         self.board = board
         self.tile_attributes = tile_attributes
         self.color_map = color_map
+        self.axial_coords = self.set_axial_coords()
+        self.rendered_hex_size = self.calculate_rendered_hex_size()
+        # print(self.rendered_hex_size)
 
         self.scene = QGraphicsScene()
         self.setScene(self.scene)
         self.render_board()
         self.setRenderHint(QPainter.RenderHint.Antialiasing)
 
+    def set_axial_coords(self):
+        """
+        Returns a dictionary mapping tile IDs to their axial (q, r) coordinates,
+        based on the BoardModel's axial_map.
+        """
+        coords = {}
+        for tile in self.board.tiles:
+            axial = self.board.axial_map.get(tile.qr_id)
+            if axial is not None:
+                coords[tile.qr_id] = axial
+        return coords
+
     def render_board(self):
         """
         Populates the graphics scene with tile items positioned using axial coordinates.
         """
         for tile in self.board.tiles:
-            axial_coords = self.board.axial_map.get(tile.qr_id)
-            if axial_coords is None:
-                continue  # Skip tiles with no axial position
-
-            q, r = axial_coords
-            x, y = axial_to_pixel(q, r, HEX_SIZE)
+            q, r = self.axial_coords.get(tile.qr_id, (0, 0))  # Safe fallback
+            x, y = axial_to_pixel(q, r, self.rendered_hex_size)
             color = self.resolve_tile_color(tile.qr_id)
 
-            tile_item = TileGraphicsItem(tile, color, HEX_SIZE)
+            tile_item = TileGraphicsItem(tile, color, self.rendered_hex_size)
             tile_item.setPos(QPointF(x, y))
             self.scene.addItem(tile_item)
 
@@ -66,21 +76,52 @@ class BoardView(QGraphicsView):
         return DEFAULT_COLOR
 
 
-def axial_to_pixel(q, r, size):
+    def calculate_rendered_hex_size(self):
+        """
+        Sets the rendered hex size so all tiles fit within the current view.
+        """
+        if not self.axial_coords:
+            return
+
+        qs = [q for q, _ in self.axial_coords.values()]
+        rs = [r for _, r in self.axial_coords.values()]
+        
+        min_q, max_q = min(qs), max(qs)
+        min_r, max_r = min(rs), max(rs)
+
+        board_width = max_q - min_q + 1
+        board_height = max_r - min_r + 1
+
+        view_width = self.viewport().width()
+        view_height = self.viewport().height()
+
+        # Estimate hex size so they fit in view
+        size_x = view_width / (board_width * 1.5 + 0.5)
+        size_y = view_height / ((board_height + 0.5) * (3**0.5))
+
+        return min(size_x, size_y)
+
+
+def axial_to_pixel(q, r, rendered_hex_size):
     """
-    Converts axial hex coordinates to pixel coordinates for rendering.
+    Converts axial coordinates to pixel position for flat-topped hexagons.
 
     Parameters:
-        q (int): Axial q-coordinate.
-        r (int): Axial r-coordinate.
-        size (float): Size of the hexagon.
+        q (int): Axial column
+        r (int): Axial row
+        hex_size (float): Length from center to flat side (radius)
 
     Returns:
-        tuple: (x, y) pixel coordinates.
+        (float, float): x, y position in pixels
     """
-    x = size * (3 / 2 * q)
-    y = size * (math.sqrt(3) * (r + q / 2))
+    width = 2 * rendered_hex_size
+    height = math.sqrt(3) * rendered_hex_size  # vertical height of hex
+
+    x = width * (3/4) * q
+    y = height * (r + q / 2)
+
     return x, y
+
 
 
 class TileGraphicsItem(QGraphicsItem):
@@ -102,7 +143,16 @@ class TileGraphicsItem(QGraphicsItem):
         # Add label text to the center of the tile
         self.label_item = QGraphicsTextItem(tile.icon(), self)
         self.label_item.setDefaultTextColor(QColor("black"))
-        self.label_item.setPos(-10, -10)  # Adjust for rough centering
+
+        bounds = self.label_item.boundingRect()
+        self.label_item.setTransformOriginPoint(bounds.center())
+
+        # Position the label so its center aligns with the tile's center
+        self.label_item.setPos(-bounds.width() / 2, -bounds.height() / 2)
+        
+        # Rotate to match tile
+        rotation_deg = self.tile.attributes.get("rotation", 0)
+        self.label_item.setRotation(rotation_deg)
 
     def boundingRect(self):
         """
@@ -122,23 +172,32 @@ class TileGraphicsItem(QGraphicsItem):
             option (QStyleOptionGraphicsItem): Style options.
             widget (QWidget): Optional widget reference.
         """
+        points = self.create_hexagon_points()
+
         path = QPainterPath()
-        for i in range(6):
-            angle_deg = 60 * i - 30
-            angle_rad = math.radians(angle_deg)
-            x = self.size * math.cos(angle_rad)
-            y = self.size * math.sin(angle_rad)
-            if i == 0:
-                path.moveTo(x, y)
-            else:
-                path.lineTo(x, y)
-        path.closeSubpath()
+        if points:
+            path.moveTo(points[0])
+            for point in points[1:]:
+                path.lineTo(point)
+            path.closeSubpath()
 
         painter.setBrush(QBrush(self.color))
-        # print(isinstance(self.tile, AnchorTile))
+
         if isinstance(self.tile, AnchorTile):
             painter.setPen(QPen(ANCHOR_BORDER_COLOR, ANCHOR_BORDER_WIDTH))
         else:
             painter.setPen(QPen(Qt.PenStyle.NoPen))
 
         painter.drawPath(path)
+
+    def create_hexagon_points(self):
+        rotation_deg = self.tile.attributes.get("rotation", 0)
+        rotation_rad = math.radians(rotation_deg)
+
+        points = []
+        for i in range(6):
+            angle_rad = math.radians(60 * i) + rotation_rad
+            x = self.size * math.cos(angle_rad)
+            y = self.size * math.sin(angle_rad)
+            points.append(QPointF(x, y))
+        return points

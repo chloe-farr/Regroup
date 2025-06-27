@@ -80,7 +80,7 @@ def main():
     app = QApplication(sys.argv)  # MUST be first Qt thing
 
     # Scanned image of physical board
-    img_path = "assets/tile_imgs/IMG_1611.jpg"
+    img_path = "assets/tile_imgs/IMG_1618.jpg"
     tile_metadata_path = "assets/tile_definitions.json" #may turn into arg that user can provide
     tile_attributes_path = "assets/tile_attributes.json"
     img, tile_metadata, tile_attributes = load_assets(img_path, tile_metadata_path, tile_attributes_path)
