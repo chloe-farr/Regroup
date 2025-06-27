@@ -6,6 +6,26 @@ __pycache__/
 # C extensions
 *.so
 
+# Fonts
+*.ttf
+*.otf
+
+# QR code outputs
+qr_icon_vector_*.*
+qr_teachers.svg
+
+# SVG or PNG generated QR codes
+QRs/
+*.svg
+*.png
+
+# board photos
+tile_imgs/
+*.png
+*.jpg
+*.jpeg
+*.JPG
+
 # Distribution / packaging
 .Python
 build/
@@ -192,3 +212,9 @@ cython_debug/
 #  refer to https://docs.cursor.com/context/ignore-files
 .cursorignore
 .cursorindexingignore
+
+# Temporary scripts or cache
+*.bak
+*.tmp
+
+

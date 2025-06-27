@@ -1,0 +1,65 @@
+/* GLOBAL COLORS */
+QWidget {
+    background-color: #EEE9E6;  /* Soft cream */
+    color: #4C7F3A;             /* Forest green (default text) */
+    font-family: "Segoe UI", sans-serif;
+}
+
+/* BUTTONS */
+QPushButton {
+    background-color: #6DA54D;  /* Turtle green */
+    color: white;
+    border: 2px solid #4C7F3A;
+    border-radius: 8px;
+    padding: 6px 12px;
+}
+
+QPushButton:hover {
+    background-color: #8CC766;  /* Slightly lighter green on hover */
+}
+
+QPushButton:pressed {
+    background-color: #4C7F3A;  /* Forest green when pressed */
+}
+
+/* SIDEBAR / PANEL */
+QFrame#Sidebar {
+    background-color: #FFFDF9;  /* Lightest cream */
+    border-right: 2px solid #8C5E2D; /* Shell brown */
+}
+
+/* DROPDOWN / COMBOBOX */
+QComboBox {
+    background-color: #E2BC6F;  /* Shell yellow */
+    color: #4C7F3A;
+    border: 1px solid #8C5E2D;
+    border-radius: 4px;
+    padding: 4px;
+}
+
+QComboBox QAbstractItemView {
+    background-color: #FFFDF9;
+    selection-background-color: #A2DFF2;  /* Sky blue */
+    selection-color: #000;
+}
+
+/* HEX TILE STYLING — if using custom widgets */
+.HexTile {
+    background-color: #6DA54D;  /* Turtle green */
+    border: 2px solid #8C5E2D;  /* Shell brown */
+    border-radius: 12px; /* Adjust as needed for shape rounding */
+}
+
+.HexTile:hover {
+    background-color: #D93A31;  /* Cap red */
+    color: white;
+}
+
+/* TOOLTIP / POPUP */
+QToolTip {
+    background-color: #E2BC6F;
+    color: #000;
+    border: 1px solid #8C5E2D;
+    padding: 4px;
+    border-radius: 4px;
+}

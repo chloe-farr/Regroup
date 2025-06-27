@@ -1,0 +1,11 @@
+{
+    "id_010": { "icon": "F", "tile_type":"object"},
+    "id_002": { "icon": "C outline", "tile_type":"object"},
+    "id_001": { "icon": "B thick", "tile_type":"object"},
+    "id_018": { "icon": "circle", "tile_type":"anchor"},
+    "id_020": { "icon": "star", "tile_type":"anchor"},
+    "id_021": { "icon": "square", "tile_type":"anchor"},
+    "id_011": { "icon": "G", "tile_type":"object"},
+    "id_000": { "icon": "A thin", "tile_type":"object"},
+    "id_006": { "icon": "A outline", "tile_type":"anchor"}
+  }
