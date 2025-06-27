@@ -1,9 +1,9 @@
-from PyQt6.QtWidgets import QGraphicsView, QGraphicsScene, QGraphicsItem, QGraphicsTextItem
+from PyQt6.QtWidgets import QGraphicsView, QGraphicsItem, QGraphicsTextItem
 from PyQt6.QtGui import QBrush, QPen, QColor, QPainterPath, QPainter
-from PyQt6.QtCore import QRectF, QPointF, Qt
+from PyQt6.QtCore import QRectF, QPointF, Qt, pyqtSignal
 import math
 from core.tile_model import AnchorTile, ObjectTile
-
+from gui.custom_board_scene import CustomBoardScene
 
 # Constants for rendering
 DEFAULT_COLOR = QColor("lightgray")
@@ -20,8 +20,15 @@ class BoardView(QGraphicsView):
         color_map (dict): Mapping of color names to hex color codes.
         parent (QWidget): Optional parent widget.
     """
+    tile_selected = pyqtSignal(str)  # emits qr_id
+
     def __init__(self, board, tile_attributes, color_map, parent=None):
         super().__init__(parent)
+        self.tile_items = []
+        self.setScene(CustomBoardScene())
+        # self.setScene(self.scene)
+        self.scene().tile_selected.connect(self.tile_selected.emit) #scene.tile_selected → board_view.tile_selected → tile_sidebar.select_item_by_id
+
         self.board = board
         self.tile_attributes = tile_attributes
         self.color_map = color_map
@@ -29,10 +36,16 @@ class BoardView(QGraphicsView):
         self.rendered_hex_size = self.calculate_rendered_hex_size()
         # print(self.rendered_hex_size)
 
-        self.scene = QGraphicsScene()
-        self.setScene(self.scene)
         self.render_board()
         self.setRenderHint(QPainter.RenderHint.Antialiasing)
+        self.setDragMode(QGraphicsView.DragMode.ScrollHandDrag)
+
+        # cap zooming
+        self.current_scale = 1.0
+        self.max_scale = 3.0
+        self.min_scale = 0.5
+        
+        self.highlighted_item = None  # store the last tile item selected by user
 
     def set_axial_coords(self):
         """
@@ -50,6 +63,8 @@ class BoardView(QGraphicsView):
         """
         Populates the graphics scene with tile items positioned using axial coordinates.
         """
+        self.tile_items = []  # Track all tile graphics items
+
         for tile in self.board.tiles:
             q, r = self.axial_coords.get(tile.qr_id, (0, 0))  # Safe fallback
             x, y = axial_to_pixel(q, r, self.rendered_hex_size)
@@ -57,7 +72,13 @@ class BoardView(QGraphicsView):
 
             tile_item = TileGraphicsItem(tile, color, self.rendered_hex_size)
             tile_item.setPos(QPointF(x, y))
-            self.scene.addItem(tile_item)
+
+            # Optional: let tile_item know its parent view for emitting signals if needed
+            tile_item.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+
+            self.scene().addItem(tile_item)
+            self.tile_items.append(tile_item)
+
 
     def resolve_tile_color(self, qr_id):
         """
@@ -100,7 +121,56 @@ class BoardView(QGraphicsView):
         size_y = view_height / ((board_height + 0.5) * (3**0.5))
 
         return min(size_x, size_y)
+    
+    def wheelEvent(self, event):
+        zoom_in_factor = 1.15
+        zoom_out_factor = 1 / zoom_in_factor
 
+        if event.angleDelta().y() > 0 and self.current_scale < self.max_scale:
+            factor = zoom_in_factor
+        elif event.angleDelta().y() < 0 and self.current_scale > self.min_scale:
+            factor = zoom_out_factor
+        else:
+            return  # out of bounds
+
+        self.current_scale *= factor
+        self.scale(factor, factor)
+
+    # def highlight_tile_by_id(self, qr_id: str):
+    #     print("[DEBUG] ? set_highlight for ", qr_id)
+    #     if self.highlighted_item:
+    #         print("[DEBUG] I'm already highlighted ", qr_id)
+    #         self.highlighted_item.set_highlight(False)
+
+    #     for item in self.scene.items():
+    #         if isinstance(item, TileGraphicsItem) and item.tile.qr_id == qr_id:
+    #             self.highlighted_item = item
+    #             item.set_highlight(True)
+    #             print("[DEBUG] setting highlight for ", qr_id)
+    #             break
+    
+    def highlight_tile_by_id(self, tile_id: str):
+        for item in self.tile_items:
+            item.highlighted = (item.tile.qr_id == tile_id)
+            item.update()
+
+    def handle_tile_selected(self, tile_id):
+        """
+        Called when a tile is selected, either from sidebar or board.
+        Updates highlighting and triggers a repaint.
+        """
+        for tile_item in self.tile_items:  # assuming you store them
+            tile_item.highlighted = (tile_item.tile.qr_id == tile_id)
+            tile_item.update()
+    
+    def on_tile_clicked(self, qr_id):
+        self.highlight_tile_by_id(qr_id)
+        self.tile_selected.emit(qr_id) 
+
+    # def tile_was_clicked(self, tile_id):
+    #     print(f"[DEBUG] BoardView received click on: {tile_id}")
+    #     self.tile_selected.emit(tile_id)
+    #     self.tile_selected.emit(qr_id)
 
 def axial_to_pixel(q, r, rendered_hex_size):
     """
@@ -133,12 +203,15 @@ class TileGraphicsItem(QGraphicsItem):
         color (QColor): Fill color for the tile.
         size (float): Radius of the hexagon from center to vertex.
     """
+    tile_clicked = pyqtSignal(str)  # Emits qr_id
+
     def __init__(self, tile, color, size):
         super().__init__()
         self.tile = tile
         self.color = color
         self.size = size
-        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+        # self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable, True)
 
         # Add label text to the center of the tile
         self.label_item = QGraphicsTextItem(tile.icon(), self)
@@ -149,10 +222,15 @@ class TileGraphicsItem(QGraphicsItem):
 
         # Position the label so its center aligns with the tile's center
         self.label_item.setPos(-bounds.width() / 2, -bounds.height() / 2)
-        
+
         # Rotate to match tile
         rotation_deg = self.tile.attributes.get("rotation", 0)
         self.label_item.setRotation(rotation_deg)
+
+        self.highlighted = False
+        self.setAcceptHoverEvents(True)
+        self.setFlag(QGraphicsItem.GraphicsItemFlag.ItemIsSelectable)
+        
 
     def boundingRect(self):
         """
@@ -162,6 +240,12 @@ class TileGraphicsItem(QGraphicsItem):
             QRectF: The bounding rectangle.
         """
         return QRectF(-self.size, -self.size, 2 * self.size, 2 * self.size)
+
+    def set_highlight(self, state: bool):
+
+        self.highlighted = state
+        self.update()
+
 
     def paint(self, painter, option, widget):
         """
@@ -174,6 +258,7 @@ class TileGraphicsItem(QGraphicsItem):
         """
         points = self.create_hexagon_points()
 
+        # Construct hexagon path
         path = QPainterPath()
         if points:
             path.moveTo(points[0])
@@ -181,13 +266,18 @@ class TileGraphicsItem(QGraphicsItem):
                 path.lineTo(point)
             path.closeSubpath()
 
+        # Fill
         painter.setBrush(QBrush(self.color))
 
-        if isinstance(self.tile, AnchorTile):
+        # Border priority: highlighted > anchor > none
+        if self.highlighted:
+            painter.setPen(QPen(QColor("red"), 3))
+        elif isinstance(self.tile, AnchorTile):
             painter.setPen(QPen(ANCHOR_BORDER_COLOR, ANCHOR_BORDER_WIDTH))
         else:
             painter.setPen(QPen(Qt.PenStyle.NoPen))
 
+        # Draw the hexagon
         painter.drawPath(path)
 
     def create_hexagon_points(self):
@@ -201,3 +291,10 @@ class TileGraphicsItem(QGraphicsItem):
             y = self.size * math.sin(angle_rad)
             points.append(QPointF(x, y))
         return points
+    
+    def mousePressEvent(self, event):
+        print(f"[DEBUG] Tile on board clicked: {self.tile.qr_id}")
+        scene = self.scene()
+        if hasattr(scene, 'tile_was_clicked'):
+            print(f"[DEBUG] Calling tile_was_clicked for: {self.tile.qr_id}")
+            scene.tile_was_clicked(self.tile.qr_id)

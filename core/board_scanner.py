@@ -2,6 +2,8 @@ import cv2
 import math
 import numpy as np
 from core.tile_model import create_tile
+from PyQt6.QtGui import QPixmap, QImage
+from core.overlays import draw_tile_overlay
 
 """
 Scans image only.
@@ -168,3 +170,29 @@ def scan_image(img, tile_metadata=None):
     # print("hex_width: ", hex_width)
 
     return img, tiles, hex_width
+
+
+
+def cv2_to_pixmap(cv_img):
+    """Convert a BGR OpenCV image to QPixmap for PyQt."""
+    rgb_img = cv2.cvtColor(cv_img, cv2.COLOR_BGR2RGB)
+    height, width, channels = rgb_img.shape
+    bytes_per_line = channels * width
+    q_img = QImage(
+        rgb_img.data, width, height, bytes_per_line, QImage.Format.Format_RGB888
+    )
+    return QPixmap.fromImage(q_img)
+
+def xray_board(img, tiles):
+    """
+    Draw polylines and overlays on QR tile corners for visual feedback.
+    Returns:
+        np.ndarray: Annotated image with overlays.
+    """
+    annotated = img.copy()  # Avoid mutating the original
+    for tile in tiles:
+        if "og_corners" in tile.attributes:
+            pts = np.array(tile.attributes["og_corners"]).astype(int)
+            cv2.polylines(annotated, [pts], True, (0, 255, 0), 2)
+        draw_tile_overlay(annotated, tile)
+    return annotated
