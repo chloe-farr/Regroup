@@ -1,8 +1,8 @@
 import json
 import os
-from tile_model import Tile, ObjectTile, AnchorTile
+from core.tile_model import Tile, ObjectTile, AnchorTile
 
-zone_path = os.path.join(os.path.dirname(__file__), "assets", "zone_shapes.json")
+zone_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "zone_shapes.json")
 with open(zone_path) as f:
     zone_shapes = json.load(f)
 
@@ -63,12 +63,19 @@ class BoardModel:
         self.hex_width = hex_width
         self.object_tiles = {t.qr_id: t for t in tiles if isinstance(t, ObjectTile)}
         self.anchor_tiles = {t.qr_id: t for t in tiles if isinstance(t, AnchorTile)}
+        self.axial_map = {}
 
         for tile in self.tiles:
             print(f"{tile.qr_id}: centroid={tile.centroid}")
             print(f"axial={self.centroid_to_axial(tile.centroid, self.hex_width)}")
 
+        for tile in self.tiles:
+            axial = self.centroid_to_axial(tile.centroid, self.hex_width)
+            self.axial_map[tile.qr_id] = axial
+
         self.adjacency_map = self.build_adjacency_map()
+        self.assign_zones() # assign anchors to children, children to anchors
+
 
     def hex_round(q, r):
         """
@@ -138,20 +145,22 @@ class BoardModel:
         Returns:
             dict: Mapping of tile IDs to lists of adjacent tile IDs.
         """
-        axial_coords = {}  # Map qr_id to axial coordinates
+        self.axial_map = {}
         for tile in self.tiles:
-            axial_coords[tile.qr_id] = self.centroid_to_axial(tile.centroid, self.hex_width)
+            self.axial_map[tile.qr_id] = self.centroid_to_axial(tile.centroid, self.hex_width)
 
         # print(ZONE_OFFSETS)
 
         adjacency_map = {}
-        for tile_id, (q, r) in axial_coords.items():
+        for tile_id, (q, r) in self.axial_map.items():
             neighbors = []
             for dq, dr in ZONE_OFFSETS:
                 neighbor_pos = (q + dq, r + dr)
-                for other_id, (oq, or_) in axial_coords.items():
+                for other_id, (oq, or_) in self.axial_map.items():
                     if (oq, or_) == neighbor_pos:
                         neighbors.append(other_id)
+                    else: 
+                        neighbors.append(None)
             adjacency_map[tile_id] = neighbors
 
         return adjacency_map

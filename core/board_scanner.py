@@ -1,7 +1,7 @@
 import cv2
 import math
 import numpy as np
-from tile_model import create_tile
+from core.tile_model import create_tile
 
 """
 Scans image only.
@@ -108,7 +108,7 @@ def regulate_tile(corners):
 
     return tile_rot_deg, tuple(hex_center)
     
-def scan_image(path, tile_metadata=None):
+def scan_image(img, tile_metadata=None):
     """
     Scans an image for QR codes and returns Tile objects with metadata and layout geometry.
 
@@ -122,10 +122,6 @@ def scan_image(path, tile_metadata=None):
         hex_diag (float): Estimated hexagon height based on QR size.
         hex_width (float): Estimated hexagon width based on QR size.
     """
-    img = cv2.imread(path)
-    if img is None:
-        raise FileNotFoundError(f"Image not found or couldn't be read: {path}")
-
     detector = cv2.QRCodeDetector()
     detector.setEpsX(0.1)
     detector.setEpsY(0.1)
