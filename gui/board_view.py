@@ -2,7 +2,7 @@ from PyQt6.QtWidgets import QGraphicsView, QGraphicsItem, QGraphicsTextItem
 from PyQt6.QtGui import QBrush, QPen, QColor, QPainterPath, QPainter, QAction
 from PyQt6.QtCore import QRectF, QPointF, Qt, pyqtSignal
 import math
-from core.tile_model import AnchorTile, ObjectTile
+from core.tile_model import Tile, AnchorTile, ObjectTile
 from gui.custom_board_scene import CustomBoardScene
 
 # Constants for rendering
@@ -20,7 +20,7 @@ class BoardView(QGraphicsView):
         color_map (dict): Mapping of color names to hex color codes.
         parent (QWidget): Optional parent widget.
     """
-    tile_selected = pyqtSignal(str)  # emits qr_id
+    tile_selected = pyqtSignal(Tile) #emits Tile object
 
     def __init__(self, board, tile_attributes, color_map, parent=None):
         super().__init__(parent)
@@ -137,22 +137,26 @@ class BoardView(QGraphicsView):
         self.scale(factor, factor)
     
     def highlight_tile_by_id(self, tile_id: str):
+        # print(f"[DEBUG] highlight_tile_by_id: {tile_id}")
         for item in self.tile_items:
             item.highlighted = (item.tile.qr_id == tile_id)
             item.update()
 
-    def handle_tile_selected(self, tile_id):
-        """
-        Called when a tile is selected, either from sidebar or board.
-        Updates highlighting and triggers a repaint.
-        """
-        for tile_item in self.tile_items:  # assuming you store them
-            tile_item.highlighted = (tile_item.tile.qr_id == tile_id)
-            tile_item.update()
-    
-    def on_tile_clicked(self, qr_id):
-        self.highlight_tile_by_id(qr_id)
-        self.tile_selected.emit(qr_id) 
+    # def handle_tile_selected(self, tile: Tile):
+    #     print(f"[DEBUG] handle_tile_selected: {tile.qr_id}")
+    #     # for item in self.scene.items():
+    #     for item in self.scene().items():
+    #         if isinstance(item, TileGraphicsItem):
+    #             item.set_highlight(item.tile.qr_id == tile.qr_id)
+
+    def handle_tile_selected(self, tile):
+        # print(f"[DEBUG] handle_tile_selected: {tile.qr_id}")
+        self.highlight_tile_by_id(tile.qr_id)
+
+    def on_tile_clicked(self, tile: Tile):  # now receives the full Tile
+        # print(f"[DEBUG] on_tile_selected: {tile.qr_id}")
+        self.highlight_tile_by_id(tile.qr_id)
+        self.tile_selected.emit(tile)  # emit Tile object instead of ID
 
 
 def axial_to_pixel(q, r, rendered_hex_size):
@@ -186,8 +190,8 @@ class TileGraphicsItem(QGraphicsItem):
         color (QColor): Fill color for the tile.
         size (float): Radius of the hexagon from center to vertex.
     """
-    tile_clicked = pyqtSignal(str)  # Emits qr_id
-
+    tile_clicked = pyqtSignal(Tile)  # Emits qr_id
+    
     def __init__(self, tile, color, size):
         super().__init__()
         self.tile = tile
@@ -225,7 +229,7 @@ class TileGraphicsItem(QGraphicsItem):
         return QRectF(-self.size, -self.size, 2 * self.size, 2 * self.size)
 
     def set_highlight(self, state: bool):
-
+        # print(f"[DEBUG] set_highlight: {self.tile.qr_id}")
         self.highlighted = state
         self.update()
 
@@ -280,4 +284,4 @@ class TileGraphicsItem(QGraphicsItem):
         scene = self.scene()
         if hasattr(scene, 'tile_was_clicked'):
             # print(f"[DEBUG] Calling tile_was_clicked for: {self.tile.qr_id}")
-            scene.tile_was_clicked(self.tile.qr_id)
+            scene.tile_was_clicked(self.tile)

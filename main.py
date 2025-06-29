@@ -35,6 +35,7 @@ def mock_board(img, tile_metadata):
     # board.print_adjacency_map()
 
     board = BoardModel(tiles, hex_width=hex_width)
+
     # xray_board(img, tsiles)
     
     return board
