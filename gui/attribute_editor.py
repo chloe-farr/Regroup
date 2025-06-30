@@ -15,9 +15,9 @@ class AttributeEditor(QWidget):
 
     def init_ui(self):
         self.label = QLabel("Attribute Editor")
-        main_layout = QVBoxLayout()
-        main_layout.addWidget(self.label)
-        self.setLayout(main_layout)
+        self.main_layout = QVBoxLayout()
+        self.main_layout.addWidget(self.label)
+        self.setLayout(self.main_layout)
 
 
     def set_tile(self, tile: Tile):
@@ -27,7 +27,7 @@ class AttributeEditor(QWidget):
 
         # --- Header ---
         header = QLabel(f"Editing {tile.icon()}")
-        self.layout().addWidget(header)
+        self.main_layout.addWidget(header)
 
         # --- Common: Nickname ---
         self.nickname_field(tile_attributes)
@@ -37,7 +37,11 @@ class AttributeEditor(QWidget):
         elif isinstance(tile, AnchorTile):
             self.set_anchor_tile(tile)
 
-        self.add_new_attribute_ui(tile_attributes)
+        if isinstance(tile, ObjectTile):
+            self.add_new_attribute_ui(tile_attributes)
+        
+        self.user_defined_attributes(tile_attributes, tile)
+        
 
     def nickname_field(self, tile_attributes: dict):
         label = QLabel("Nickname:")
@@ -48,8 +52,10 @@ class AttributeEditor(QWidget):
         row = QHBoxLayout()
         row.addWidget(label)
         row.addWidget(edit)
-        self.layout().addLayout(row)
-        
+
+        container = QWidget()
+        container.setLayout(row)
+        self.main_layout.addWidget(container)        
 
     def set_object_tile(self, tile: ObjectTile):
         tile_attributes = tile.attributes
@@ -79,17 +85,12 @@ class AttributeEditor(QWidget):
 
         # --- Placeholder: Siblings ---
         siblings_label = QLabel("Siblings: TBD")
-        self.layout().addWidget(siblings_label)
-
+        self.main_layout.addWidget(siblings_label)
         # --- Color Dropdown ---
         self.color_dropdown(tile_attributes)
 
         # --- Divider ---
         self.divider()
-
-        # --- User Attributes ---
-        self.user_defined_attributes(tile_attributes)
-
 
     def set_anchor_tile(self, tile: AnchorTile):
         tile_attributes = tile.attributes
@@ -98,49 +99,51 @@ class AttributeEditor(QWidget):
         children = [t for t in self.board.object_tiles.values() if t.assigned_to == tile.qr_id]
         child_names = ", ".join(t.icon() for t in children) if children else "None"
         children_label = QLabel(f"Children: {child_names}")
-        self.layout().addWidget(children_label)
-
+        self.main_layout.addWidget(children_label)
         # --- Color Dropdown ---
         self.color_dropdown(tile_attributes)
 
         # --- Divider ---
         self.divider()
 
-        # --- User Attributes ---
-        self.user_defined_attributes(tile_attributes)
-
         # --- Attribute Keys (Editable per anchor) ---
         attributes_label = QLabel("Attributes (for assigned tiles):")
-        self.layout().addWidget(attributes_label)
-
+        
+        self.main_layout.addWidget(attributes_label)
+         
         # Get or initialize the list of attribute keys
         existing_keys = tile_attributes.setdefault("attribute_keys", [])
 
-        for key in existing_keys:
+        for i, key in enumerate(existing_keys):
             key_row = QHBoxLayout()
 
             key_label = QLabel("Attribute:")
             key_edit = QLineEdit()
             key_edit.setText(key)
 
-            def update_key(old_key=key):
-                def handler(text):
-                    try:
-                        idx = tile_attributes["attribute_keys"].index(old_key)
-                        tile_attributes["attribute_keys"][idx] = text
-                    except ValueError:
-                        pass  # silently ignore if old_key is no longer in the list
+            # Safer update using editingFinished
+            def make_update_handler(index, line_edit):
+                def handler():
+                    new_text = line_edit.text().strip()
+                    if new_text:
+                        tile_attributes["attribute_keys"][index] = new_text
                 return handler
 
-            key_edit.textChanged.connect(update_key())
+            key_edit.editingFinished.connect(make_update_handler(i, key_edit))
 
             key_row.addWidget(key_label)
             key_row.addWidget(key_edit)
             self.layout().addLayout(key_row)
 
+  
+            container = QWidget()
+            container.setLayout(key_row)
+            self.main_layout.addWidget(container)
+
         # --- Add Attribute Button ---
         add_key_button = QPushButton("Add Attribute")
         add_key_button.clicked.connect(lambda: self.add_attribute_key(tile))
+        add_key_button.clicked.connect(lambda: print("Add clicked"))
         self.layout().addWidget(add_key_button)
 
     def add_attribute_key(self, anchor):
@@ -161,60 +164,89 @@ class AttributeEditor(QWidget):
         row = QHBoxLayout()
         row.addWidget(label)
         row.addWidget(combo)
-        self.layout().addLayout(row)
+
+        container = QWidget()
+        container.setLayout(row)
+        self.main_layout.addWidget(container)  
 
     def divider(self):
         line = QFrame()
         line.setFrameShape(QFrame.Shape.HLine)
         line.setFrameShadow(QFrame.Shadow.Sunken)
-        self.layout().addWidget(line)
+        self.main_layout.addWidget(line)
 
-    def user_defined_attributes(self, tile_attributes: dict):
+    def user_defined_attributes(self, tile_attributes: dict, tile):
         system_keys = {"icon", "tile_type", "rotation", "og_corners", "qr_corners", "centroid"}
-
+        
         for key, value in tile_attributes.items():
             if key in system_keys:
                 continue  # Skip internal keys
 
             label = QLabel(f"{key}:")
             edit = QLineEdit(str(value))
-            edit.textChanged.connect(lambda text, k=key: tile_attributes.update({k: text}))
+
+            def make_updater(k):
+                return lambda text: tile_attributes.update({k: text})
+
+            edit.textChanged.connect(make_updater(key))
 
             row = QHBoxLayout()
             row.addWidget(label)
-            row.addWidget(edit)
-            self.main_layout = QVBoxLayout()
-            self.setLayout(self.main_layout)
+            row.addWidget(edit)        
+
+            if isinstance(tile, ObjectTile): self.layout().addLayout(row) 
 
     
     def add_new_attribute_ui(self, tile_attributes: dict):
-        key_input = QLineEdit()
-        key_input.setPlaceholderText("New attribute name")
+        if isinstance(self.tile, ObjectTile):
+            anchors = self.board.get_anchors_of_tile(self.tile)
+            key_input = QComboBox()
+            key_input.setEditable(True)  # Allow user-defined text
+            key_input.addItem("empty")
+            for a in anchors:
+                for key in a.attributes.get("attribute_keys", []):
+                    key_input.addItem(key)
+        else:
+            key_input = QLineEdit()
+            key_input.setPlaceholderText("New attribute name")
 
         value_input = QLineEdit()
         value_input.setPlaceholderText("Value")
 
         add_button = QPushButton("Add")
-        
+
         def add_attribute():
-            key = key_input.text().strip()
+            key = key_input.currentText().strip() if isinstance(key_input, QComboBox) else key_input.text().strip()
             value = value_input.text().strip()
-            if key and key not in tile_attributes:
-                tile_attributes[key] = value
+            print(f"ADDING: {key=}, {value=}")  # Debug line
 
-                # Add label and editable field to UI
-                label = QLabel(f"{key}:")
-                field = QLineEdit(value)
-                field.textChanged.connect(lambda text, k=key: tile_attributes.update({k: text}))
+            if not key:
+                return  # Do nothing on empty key
 
-                row = QHBoxLayout()
-                row.addWidget(label)
-                row.addWidget(field)
-                self.layout.addLayout(row)
+            if isinstance(self.tile, ObjectTile):
+                tile_attributes[key] = value  # Always allow key update
+            else:
+                if key not in tile_attributes:
+                    tile_attributes[key] = ""
+                if key not in tile_attributes.get("attribute_keys", []):
+                    tile_attributes.setdefault("attribute_keys", []).append(key)
 
-                # Clear input fields
+            # Add label and editable field to UI
+            label = QLabel(f"{key}:")
+            field = QLineEdit(value)
+            field.textChanged.connect(lambda text, k=key: tile_attributes.update({k: text}))
+
+            row = QHBoxLayout()
+            row.addWidget(label)
+            row.addWidget(field)
+            self.layout().addLayout(row)
+
+            # Clear inputs
+            if isinstance(key_input, QComboBox):
+                key_input.setCurrentText("")
+            else:
                 key_input.clear()
-                value_input.clear()
+            value_input.clear()
 
         add_button.clicked.connect(add_attribute)
 
@@ -223,7 +255,9 @@ class AttributeEditor(QWidget):
         input_row.addWidget(value_input)
         input_row.addWidget(add_button)
 
-        self.layout().addLayout(input_row)
+        container = QWidget()
+        container.setLayout(input_row)
+        self.layout().addWidget(container)
 
     def clear_fields(self):
         layout = self.layout()
@@ -243,3 +277,17 @@ class AttributeEditor(QWidget):
                 widget.setParent(None)
             elif item.layout():
                 self.clear_layout(item.layout())
+
+
+    def add_attribute_row(self, key, value):
+        tile_attributes = self.tile.attributes
+        tile_attributes[key] = value
+
+        label = QLabel(f"{key}:")
+        field = QLineEdit(value)
+        field.textChanged.connect(lambda text, k=key: tile_attributes.update({k: text}))
+
+        row = QHBoxLayout()
+        row.addWidget(label)
+        row.addWidget(field)
+        self.main_layout.addWidget(row)

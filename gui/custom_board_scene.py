@@ -11,7 +11,7 @@ class CustomBoardScene(QGraphicsScene):
     #     self.tile_selected.emit(qr_id)
 
     def tile_was_clicked(self, tile):
-        print(f"[DEBUG] Emitting scene.tile_selected: {tile}")
+        # print(f"[DEBUG] Emitting scene.tile_selected: {tile}")
 
         self.tile_selected.emit(tile)
         

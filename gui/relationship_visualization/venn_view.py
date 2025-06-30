@@ -21,9 +21,9 @@ class VennViewTab(QWidget):
         self.draw_venn()
 
     def draw_venn(self):
-        if not self.board or not hasattr(self.board, 'adjacency_map'):
-            print("No board or adjacency map found.")
-            return
+        # if not self.board or not hasattr(self.board, 'adjacency_map'):
+        #     print("No board or adjacency map found.")
+        #     return
 
         self.figure.clear()
         ax = self.figure.add_subplot(111)
@@ -43,11 +43,11 @@ class VennViewTab(QWidget):
                 display_label = nickname if nickname else obj.icon()
                 anchor_sets[assigned].add(display_label)
 
-        print(f"anchor sets: {anchor_sets}")
+        # print(f"anchor sets: {anchor_sets}")
 
         for tile in self.board.tiles:
             if isinstance(tile, ObjectTile) and hasattr(tile, "assigned_to"):
-                print(f"object tile: {tile}")
+                # print(f"object tile: {tile}")
 
                 for anchor_id in tile.assigned_to:
                     if anchor_id in anchor_sets:
@@ -81,7 +81,6 @@ class VennViewTab(QWidget):
             else:
                 colors.append("lightgray")
 
-        venn_func = None
         
         # Handle 1, 2, or 3 sets
         if len(sets) == 1:
@@ -94,8 +93,8 @@ class VennViewTab(QWidget):
 
         elif len(sets) == 2:
             print(f"Anchor sets being plotted:")
-            for anchor_id, obj_ids in anchor_sets.items():
-                print(f"  {anchor_id} → {obj_ids}")
+            # for anchor_id, obj_ids in anchor_sets.items():
+                # print(f"  {anchor_id} → {obj_ids}")
 
             venn = venn2(subsets=sets, set_labels=labels, ax=ax, set_colors=colors)
         elif len(sets) == 3:
