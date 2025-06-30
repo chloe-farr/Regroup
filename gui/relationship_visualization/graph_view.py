@@ -55,3 +55,4 @@ class GraphViewTab(QWidget):
         )
 
         self.canvas.draw()
+        

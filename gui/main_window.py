@@ -101,11 +101,26 @@ class MainWindow(QMainWindow):
 
         # ----- File Menu -----
         file_menu = menubar.addMenu("File")
+        # 'Export as PDF' submenu
+        export_pdf_menu = file_menu.addMenu("Export as PDF")
 
-        export_action = QAction("Export to PDF", self)
-        export_action.setShortcut("Ctrl+P")
-        export_action.triggered.connect(self.export_board_to_pdf)
-        file_menu.addAction(export_action)
+        # Board export
+        export_board_action = QAction("Board", self)
+        export_board_action.triggered.connect(self.export_board_to_pdf)
+        export_pdf_menu.addAction(export_board_action)
+
+        # Relationships submenu
+        relationships_menu = export_pdf_menu.addMenu("Relationships")
+
+            # Venn export
+        export_venn_action = QAction("Venn", self)
+        export_venn_action.triggered.connect(lambda: self.export_visualization_pdf('venn'))
+        relationships_menu.addAction(export_venn_action)
+
+            # Graph export
+        export_graph_action = QAction("Graph", self)
+        export_graph_action.triggered.connect(lambda: self.export_visualization_pdf('graph'))
+        relationships_menu.addAction(export_graph_action)
 
         file_menu.addSeparator()
         file_menu.addAction("Exit", self.close)
@@ -144,6 +159,32 @@ class MainWindow(QMainWindow):
         painter = QPainter(printer)
         self.board_view.scene().render(painter)  # Optionally: pass QRect if you want clipping
         painter.end()
+    
+    
+    def export_visualization_pdf(self, visualization_type):  # 'venn', 'graph'
+        filename, _ = QFileDialog.getSaveFileName(self, "Export to PDF", f"{visualization_type}_output.pdf", "PDF Files (*.pdf)")
+        if not filename:
+            return
+
+        printer = QPrinter()
+        printer.setOutputFormat(QPrinter.OutputFormat.PdfFormat)
+        printer.setOutputFileName(filename)
+
+        painter = QPainter()
+        
+        # Correct way to get the tab widget reference
+        vis_tab = getattr(self.relationship_pane, f"{visualization_type}_view_tab", None)
+        if vis_tab is None:
+            print(f"Visualization tab '{visualization_type}_view_tab' not found.")
+            return
+
+        if not painter.begin(printer):
+            print("Failed to open PDF for painting.")
+            return
+
+        vis_tab.render(painter)
+        painter.end()
+
 
     def init_attribute_editor(self, tile_data, board):
         self.attribute_editor = AttributeEditor(tile_data, board)

@@ -50,4 +50,5 @@ Intermediate features:
 ```
 pip install networkx matplotlib pydot //in py env
 brew install graphviz //in os
+pip install matplotlib-venn
 ```

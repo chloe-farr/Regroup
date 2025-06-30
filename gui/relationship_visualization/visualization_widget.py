@@ -88,3 +88,4 @@ class RelationshipVisualizationWidget(QWidget):
             self.venn_view_tab.set_board(self.board)
         # if hasattr(self.tree_view_tab, 'set_board'):
         #     self.tree_view_tab.set_board(self.board)
+
