@@ -183,7 +183,8 @@ class AttributeEditor(QWidget):
             row = QHBoxLayout()
             row.addWidget(label)
             row.addWidget(edit)
-            self.layout.addLayout(row)
+            self.main_layout = QVBoxLayout()
+            self.setLayout(self.main_layout)
 
     
     def add_new_attribute_ui(self, tile_attributes: dict):

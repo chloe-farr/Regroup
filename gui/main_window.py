@@ -6,6 +6,7 @@ from gui.board_view import BoardView
 from gui.tile_sidebar import TileSidebar
 from gui.scanned_board_view import ScannedBoardView
 from gui.attribute_editor import AttributeEditor
+from gui.relationship_visualization.visualization_widget import RelationshipVisualizationWidget
 from core.board_scanner import cv2_to_pixmap  
 
 class MainWindow(QMainWindow):
@@ -26,6 +27,7 @@ class MainWindow(QMainWindow):
         self.init_tile_sidebar(tile_data, board, self.attribute_editor)
         
         self.init_board_view(board, tile_data, color_map)
+        self.init_relationship_visualization_pane(board)
 
         self.tile_sidebar.tile_selected.connect(self.board_view.handle_tile_selected)
         self.tile_sidebar.tile_selected.connect(self.attribute_editor.set_tile)
@@ -33,7 +35,6 @@ class MainWindow(QMainWindow):
         self.board_view.tile_selected.connect(self.tile_sidebar.select_item_by_id)
         self.board_view.tile_selected.connect(self.attribute_editor.set_tile)
         self.board_view.tile_selected.connect(self.board_view.handle_tile_selected)
-
 
         self.init_scanned_board_view(xray_img)
 
@@ -116,11 +117,13 @@ class MainWindow(QMainWindow):
         toggle_sidebar = self.tile_menu_dock.toggleViewAction()
         toggle_xray = self.xray_dock.toggleViewAction()
         toggle_attribute_editor = self.attribute_dock.toggleViewAction()
+        toggle_relationship_pane = self.relationship_dock.toggleViewAction()
 
         view_menu.addAction(toggle_board)
         view_menu.addAction(toggle_sidebar)
         view_menu.addAction(toggle_xray)
         view_menu.addAction(toggle_attribute_editor)
+        view_menu.addAction(toggle_relationship_pane)
 
     def defer_resize_docks(self):
         self.resizeDocks(
@@ -148,3 +151,23 @@ class MainWindow(QMainWindow):
         self.attribute_dock.setWidget(self.attribute_editor)
         self.attribute_dock.setAllowedAreas(Qt.DockWidgetArea.RightDockWidgetArea | Qt.DockWidgetArea.LeftDockWidgetArea)
         self.addDockWidget(Qt.DockWidgetArea.RightDockWidgetArea, self.attribute_dock)
+
+    def init_relationship_visualization_pane(self, board):
+        self.relationship_dock = QDockWidget("Relationships", self)
+        self.relationship_pane = RelationshipVisualizationWidget(board)
+        self.relationship_dock.setWidget(self.relationship_pane)
+        
+        self.addDockWidget(Qt.DockWidgetArea.BottomDockWidgetArea, self.relationship_dock) #dock to bottom
+        self.relationship_dock.setFeatures(
+            QDockWidget.DockWidgetFeature.DockWidgetClosable |
+            QDockWidget.DockWidgetFeature.DockWidgetMovable |
+            QDockWidget.DockWidgetFeature.DockWidgetFloatable
+        )
+        self.relationship_dock.setAllowedAreas(Qt.DockWidgetArea.BottomDockWidgetArea) #restrict permitted docking area to bottom
+        self.relationship_dock.setMinimumHeight(70)
+        # self.relationship_dock.setMaximumHeight(70)
+
+    def expand_relationship_dock(self):
+        self.relationship_dock.setMaximumHeight(1000)  
+        self.relationship_dock.setMinimumHeight(100)
+        self.relationship_dock.setFixedHeight(self.height() * 0.25)

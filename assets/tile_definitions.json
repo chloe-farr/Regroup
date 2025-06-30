@@ -2,6 +2,7 @@
     "id_000": { "icon": "A", "tile_type":"object"},
     "id_001": { "icon": "B", "tile_type":"object"},
     "id_002": { "icon": "C", "tile_type":"object"},
+    "id_029": { "icon": "D", "tile_type":"object"},
     "id_003": { "icon": "E", "tile_type":"object"},
     "id_004": { "icon": "F", "tile_type":"object"},
     "id_005": { "icon": "G", "tile_type":"object"},
@@ -27,6 +28,5 @@
     "id_025": { "icon": "▢", "tile_type":"anchor"},
     "id_026": { "icon": "♥", "tile_type":"anchor"},
     "id_027": { "icon": "○", "tile_type":"anchor"},
-    "id_028": { "icon": "☆", "tile_type":"anchor"},
-    "id_029": { "icon": "D", "tile_type":"object"}
+    "id_028": { "icon": "☆", "tile_type":"anchor"}
   }

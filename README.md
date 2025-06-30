@@ -45,3 +45,9 @@ Intermediate features:
 - Print/export board view
 - Eye icon to toggle tile visibility
 - Board zone highlighting (anchor group shading)
+
+
+```
+pip install networkx matplotlib pydot //in py env
+brew install graphviz //in os
+```

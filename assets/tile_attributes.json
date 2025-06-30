@@ -15,6 +15,10 @@
       "color": "#FFB347",
       "tags": ["animal", "cat", "mammal"]
     },
+    "id_029": {
+      "color": "#FFB347",
+      "tags": ["animal", "cat", "mammal"]
+    },
     "id_003": {
       "color": "#FFB347",
       "tags": ["animal", "cat", "mammal"]
@@ -113,10 +117,6 @@
       "tags": ["animal", "cat", "mammal"]
     },
     "id_028": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
-    },
-    "id_029": {
       "color": "#FFB347",
       "tags": ["animal", "cat", "mammal"]
     }
