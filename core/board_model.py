@@ -65,41 +65,41 @@ class BoardModel:
         self.anchor_tiles = {t.qr_id: t for t in tiles if isinstance(t, AnchorTile)}
         self.axial_map = {}
 
-        if __debug__: 
-            for tile in self.tiles:
-                print(f"{tile.qr_id}: centroid={tile.centroid}")
-                print(f"axial={self.centroid_to_axial(tile.centroid, self.hex_width)}")
+        # if __debug__: 
+        #     for tile in self.tiles:
+        #         print(f"{tile.qr_id}: centroid={tile.centroid}")
+        #         print(f"axial={self.centroid_to_axial(tile.centroid, self.hex_width)}")
 
-        for tile in self.tiles:
-            axial = self.centroid_to_axial(tile.centroid, self.hex_width)
-            self.axial_map[tile.qr_id] = axial
+        # for tile in self.tiles:
+        #     axial = self.centroid_to_axial(tile.centroid, self.hex_width)
+        #     self.axial_map[tile.qr_id] = axial
 
-        if __debug__: 
-            print("Axial Map:")
-            for tid, coords in self.axial_map.items():
-                print(f"{tid}: {coords}")
+        # if __debug__: 
+        #     print("Axial Map:")
+        #     for tid, coords in self.axial_map.items():
+        #         print(f"{tid}: {coords}")
 
-        if __debug__: 
-            # Compare anchor to all object tiles
-            test_anchor = "id_027"
-            for tid, coords in self.axial_map.items():
-                if tid != test_anchor:
-                    aq, ar = self.axial_map[test_anchor]
-                    tq, tr = coords
-                    delta = (tq - aq, tr - ar)
-                    if delta in ZONE_OFFSETS:
-                        print(f"✓ {tid} is adjacent to {test_anchor} with delta {delta}")
-                    else:
-                        print(f"✗ {tid} is NOT adjacent to {test_anchor} (delta {delta})")
-                else:
-                    print(f"[DEBUG] Anchor {test_anchor} not found in axial map.")
+        # if __debug__: 
+        #     # Compare anchor to all object tiles
+        #     test_anchor = "id_027"
+        #     for tid, coords in self.axial_map.items():
+        #         if tid != test_anchor:
+        #             aq, ar = self.axial_map[test_anchor]
+        #             tq, tr = coords
+        #             delta = (tq - aq, tr - ar)
+        #             if delta in ZONE_OFFSETS:
+        #                 print(f"✓ {tid} is adjacent to {test_anchor} with delta {delta}")
+        #             else:
+        #                 print(f"✗ {tid} is NOT adjacent to {test_anchor} (delta {delta})")
+        #         else:
+        #             print(f"[DEBUG] Anchor {test_anchor} not found in axial map.")
                         
         self.adjacency_map = self.build_adjacency_map()
         
-        if __debug__: 
-            print("Adjacency for anchors:")
-            for aid in self.anchor_tiles:
-                print(f"{aid}: {self.adjacency_map.get(aid)}")
+        # if __debug__: 
+        #     print("Adjacency for anchors:")
+        #     for aid in self.anchor_tiles:
+        #         print(f"{aid}: {self.adjacency_map.get(aid)}")
 
         self.assign_zones() # assign anchors to children, children to anchors
 

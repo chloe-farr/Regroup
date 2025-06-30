@@ -15,7 +15,9 @@
     },
     "id_029": {
         "icon": "D",
-        "tile_type": "object"
+        "tile_type": "object",
+        "Library": "Public",
+        "nickname": "Emily Carr"
     },
     "id_003": {
         "icon": "E",
@@ -118,7 +120,8 @@
     "id_027": {
         "icon": "\u25cb",
         "tile_type": "anchor",
-        "nickname": "Mearns"
+        "nickname": "Mearns",
+        "color": "Yellow"
     },
     "id_028": {
         "icon": "\u2606",

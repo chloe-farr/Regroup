@@ -215,12 +215,12 @@ class MainWindow(QMainWindow):
             QDockWidget.DockWidgetFeature.DockWidgetFloatable
         )
         self.relationship_dock.setAllowedAreas(Qt.DockWidgetArea.BottomDockWidgetArea) #restrict permitted docking area to bottom
-        self.relationship_dock.setMinimumHeight(70)
+        self.relationship_dock.setMinimumHeight(40)
         # self.relationship_dock.setMaximumHeight(70)
 
     def expand_relationship_dock(self):
         self.relationship_dock.setMaximumHeight(1000)  
-        self.relationship_dock.setMinimumHeight(100)
+        self.relationship_dock.setMinimumHeight(70)
         self.relationship_dock.setFixedHeight(self.height() * 0.25)
 
    
