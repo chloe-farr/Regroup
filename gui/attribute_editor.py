@@ -177,13 +177,14 @@ class AttributeEditor(QWidget):
 
     def user_defined_attributes(self, tile_attributes: dict, tile):
         system_keys = {"icon", "tile_type", "rotation", "og_corners", "qr_corners", "centroid"}
-        
+        print("tile attributes", tile_attributes)
         for key, value in tile_attributes.items():
             if key in system_keys:
                 continue  # Skip internal keys
-
+            
             label = QLabel(f"{key}:")
             edit = QLineEdit(str(value))
+            print(f"tile: {tile.icon()} key: {key}, value {value}")
 
             def make_updater(k):
                 return lambda text: tile_attributes.update({k: text})
@@ -192,9 +193,9 @@ class AttributeEditor(QWidget):
 
             row = QHBoxLayout()
             row.addWidget(label)
-            row.addWidget(edit)        
+            row.addWidget(edit)
 
-            if isinstance(tile, ObjectTile): self.layout().addLayout(row) 
+            self.layout().addLayout(row)  # Allow for both Anchor and Object tiles
 
     
     def add_new_attribute_ui(self, tile_attributes: dict):

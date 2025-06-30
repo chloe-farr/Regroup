@@ -1,123 +1,127 @@
 {
     "id_000": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
-    },
-    "id_006": {
-      "color": "#B0E57C",
-      "tags": ["family", "aunt", "adult"]
+        "icon": "A",
+        "tile_type": "object"
     },
     "id_001": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "B",
+        "tile_type": "object"
     },
     "id_002": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "C",
+        "tile_type": "object",
+        "nickname": "DSC",
+        "Library": "DSC"
     },
     "id_029": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "D",
+        "tile_type": "object"
     },
     "id_003": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "E",
+        "tile_type": "object"
     },
     "id_004": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "F",
+        "tile_type": "object"
     },
     "id_005": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
-
+        "icon": "G",
+        "tile_type": "object"
     },
-    "id_008": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+    "id_006": {
+        "icon": "H",
+        "tile_type": "object"
     },
     "id_007": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "I",
+        "tile_type": "object",
+        "nickname": "LTSI",
+        "Library": "LTSI"
+    },
+    "id_008": {
+        "icon": "J",
+        "tile_type": "object"
     },
     "id_009": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "K",
+        "tile_type": "object"
     },
     "id_010": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "L",
+        "tile_type": "object"
     },
     "id_011": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "M",
+        "tile_type": "object"
     },
     "id_012": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "N",
+        "tile_type": "object"
     },
     "id_013": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "O",
+        "tile_type": "object"
     },
     "id_014": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "P",
+        "tile_type": "object"
     },
     "id_015": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "Q",
+        "tile_type": "object"
     },
     "id_016": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "R",
+        "tile_type": "object"
     },
     "id_017": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "S",
+        "tile_type": "object"
     },
     "id_018": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "T",
+        "tile_type": "object"
     },
     "id_019": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "U",
+        "tile_type": "object"
     },
     "id_020": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "V",
+        "tile_type": "object"
     },
     "id_021": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "W",
+        "tile_type": "object"
     },
     "id_022": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "Y",
+        "tile_type": "object"
     },
     "id_023": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "X",
+        "tile_type": "object"
     },
     "id_024": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "Z",
+        "tile_type": "object"
     },
     "id_025": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "\u25a2",
+        "tile_type": "anchor"
     },
     "id_026": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "\u2665",
+        "tile_type": "anchor"
     },
     "id_027": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "\u25cb",
+        "tile_type": "anchor",
+        "nickname": "Mearns"
     },
     "id_028": {
-      "color": "#FFB347",
-      "tags": ["animal", "cat", "mammal"]
+        "icon": "\u2606",
+        "tile_type": "anchor"
     }
-  }
+}

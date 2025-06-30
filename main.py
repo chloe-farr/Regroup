@@ -23,6 +23,24 @@ COLOR_MAP = {
 }
  
 
+def rescan_board(img):
+    """
+        This function currently doesn't work
+    """
+    img_path = "assets/tile_imgs/IMG_1620.jpg"
+    tile_metadata_path = "assets/tile_definitions.json" #may turn into arg that user can provide
+    tile_attributes_path = "assets/tile_attributes.json"
+    # Use the provided img, but reload metadata
+    _, tile_data = load_assets(img_path, tile_metadata_path, tile_attributes_path)
+    board = mock_board(img, tile_data)
+    # Get and annotate your board image
+    xray_img = xray_board(img, board.tiles)
+
+    # Convert to pixmap
+    xray_pixmap = cv2_to_pixmap(xray_img)
+
+    return board, tile_data, xray_pixmap
+
 def mock_board(img, tile_metadata):
     """
     Creates a mock board with hard-coded tiles and axial positions.
@@ -41,12 +59,21 @@ def mock_board(img, tile_metadata):
     return board
 
 def merge_tile_metadata(definitions, attributes):
+    """
+    Combines static tile definitions with user-defined attributes.
+
+    Parameters:
+    - definitions (dict): Tile metadata from the scanner or definition file, keyed by QR ID (e.g., {"id_001": {"icon": "A"}}).
+    - attributes (dict):   User-saved attribute data keyed by QR ID or icon (e.g., {"id_001": {"nickname": "Solar"}, "A": {...}}).
+
+    Returns:
+    - dict: Merged tile data keyed by QR ID, where user attributes override static definitions if any keys conflict.
+    """
     merged = {}
 
     for qr_id, attrs in definitions.items():
-        icon = attrs.get("icon")
-        static = attributes.get(icon, {})  # fallback if icon missing from definitions
-        merged[qr_id] = {**static, **attrs}  # dynamic overrides static if keys clash
+        saved_attrs = attributes.get(qr_id, {})
+        merged[qr_id] = {**attrs, **saved_attrs}  # saved overrides scanned
 
     return merged
 
@@ -77,6 +104,7 @@ def init_scanned_board_view(img, board):
 
     # xray_pixmap = xray_board(img, board.tiles)
 
+
 def main():
     app = QApplication(sys.argv)  # MUST be first Qt thing
 
@@ -99,7 +127,7 @@ def main():
     xray_pixmap = cv2_to_pixmap(xray_img)
 
     # Launch main window
-    main_window = MainWindow(board, tile_data, COLOR_MAP, xray_pixmap)
+    main_window = MainWindow(board, tile_data, COLOR_MAP, xray_pixmap, mock_board=rescan_board)
     main_window.show()
 
     sys.exit(app.exec())  # <--- this keeps the app running

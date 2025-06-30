@@ -1,4 +1,4 @@
-from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QDockWidget,QFileDialog, QApplication
+from PyQt6.QtWidgets import QMainWindow, QWidget, QVBoxLayout, QDockWidget,QFileDialog, QApplication, QDialog
 from PyQt6.QtPrintSupport import QPrinter
 from PyQt6.QtGui import QPainter, QAction
 from PyQt6.QtCore import QRectF, QPointF, Qt, QTimer
@@ -7,7 +7,8 @@ from gui.tile_sidebar import TileSidebar
 from gui.scanned_board_view import ScannedBoardView
 from gui.attribute_editor import AttributeEditor
 from gui.relationship_visualization.visualization_widget import RelationshipVisualizationWidget
-from core.board_scanner import cv2_to_pixmap  
+from core.board_scanner import cv2_to_pixmap
+from core.camera_utils import capture_image
 
 class MainWindow(QMainWindow):
     """
@@ -18,9 +19,9 @@ class MainWindow(QMainWindow):
         tile_attributes (dict): Mapping of tile IDs to user-defined attributes.
         color_map (dict): Mapping of color names to hex values.
     """
-    def __init__(self, board, tile_data, color_map, xray_img):
+    def __init__(self, board, tile_data, color_map, xray_img, mock_board):
         super().__init__()
-
+        self.mock_board = mock_board #allows function call in main.py during runtime.
         self.setWindowTitle("Regroup")
 
         self.init_attribute_editor(tile_data, board)
@@ -101,6 +102,15 @@ class MainWindow(QMainWindow):
 
         # ----- File Menu -----
         file_menu = menubar.addMenu("File")
+
+        save_action = QAction("Save Attributes", self)
+        save_action.triggered.connect(self.tile_sidebar.save_tile_data)
+        file_menu.addAction(save_action)
+
+        camera_action = QAction("Open Camera", self)
+        camera_action.triggered.connect(self.open_camera_widget)
+        file_menu.addAction(camera_action)
+
         # 'Export as PDF' submenu
         export_pdf_menu = file_menu.addMenu("Export as PDF")
 
@@ -212,3 +222,23 @@ class MainWindow(QMainWindow):
         self.relationship_dock.setMaximumHeight(1000)  
         self.relationship_dock.setMinimumHeight(100)
         self.relationship_dock.setFixedHeight(self.height() * 0.25)
+
+   
+    def open_camera_widget(self):
+        """
+        This function currently doesn't work
+        """
+        # save tile data before scanning
+        self.tile_sidebar.save_tile_data()
+
+        # Capture image
+        img = capture_image()
+
+        if img is not None:
+            try:
+                new_board, new_tile_data = self.mock_board(img)
+                self.board = new_board
+                self.tile_sidebar.update_board(new_board, new_tile_data) #need to write update_board() in tile_sidebar.py
+                
+            except Exception as e:
+                print(f"Failed to process image: {e}")

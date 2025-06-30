@@ -1,9 +1,9 @@
-from PyQt6.QtWidgets import QWidget, QListWidget, QListWidgetItem, QVBoxLayout
+from PyQt6.QtWidgets import QWidget, QListWidget, QListWidgetItem, QVBoxLayout, QFileDialog
 from PyQt6.QtGui import QColor, QBrush
 from PyQt6.QtCore import Qt, pyqtSignal
 from core.tile_model import Tile, ObjectTile, AnchorTile
 from gui.attribute_editor import AttributeEditor 
-
+import json
 
 class TileSidebar(QWidget):
     """
@@ -129,3 +129,45 @@ class TileSidebar(QWidget):
         # Update editor and emit
         self.tile_selected.emit(tile)
         self.attribute_editor.set_tile(tile)
+
+    def save_tile_data(self):
+        """
+        Saves the complete tile data dictionary to a JSON file.
+
+        This includes all entries from `self.tile_data`, which may contain 
+        metadata for tiles not currently placed on the board. Each entry is 
+        keyed by QR ID and includes any associated static or user-defined 
+        metadata such as icon, nickname, color, and attributes.
+
+        The user is prompted with a file dialog to choose the output path.
+        """
+        # options = QFileDialog.Options()
+        file_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "Save Tile Data",
+            "",
+            "JSON Files (*.json)"
+        )
+
+        if not file_path:
+            return  # User canceled
+
+        # Ensure .json extension
+        if not file_path.endswith(".json"):
+            file_path += ".json"
+        
+        file_path = "./assets/tile_attributes.json" # hardcode for now
+
+
+        data_to_save = {}
+        for tile_id, attributes in self.tile_data.items():
+            # Filter to only save non-positional, user-editable fields
+            allowed_keys = {"icon", "nickname", "color"}
+            filtered = {k: v for k, v in attributes.items() if k in allowed_keys or not isinstance(v, (list, dict, float, int))}
+            data_to_save[tile_id] = filtered
+
+
+        with open(file_path, "w") as f:
+            json.dump(data_to_save, f, indent=4)
+
+            
